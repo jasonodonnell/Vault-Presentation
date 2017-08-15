@@ -281,6 +281,7 @@ Successfully authenticated! You are now logged in.
 token: 60643e64-a557-8173-8d48-c198b9b3a1c8
 token_duration: 257
 token_policies: [db-readonly default]
+
 [~/Git/Vault-Presentation] vault read database/creds/db-readonly
 Key             Value
 ---             -----
