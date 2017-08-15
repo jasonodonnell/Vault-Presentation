@@ -303,7 +303,6 @@ postgres=# \du
  v-root-dba-A1a-q6q42v881yx3qvvt-1502808239       | Superuser                                                 +| {}
                                                   | Password valid until 2017-08-15 10:43:59-04                |
  v-root-readonly-A1a-177xp2t65x9v328r-1502808230  | Password valid until 2017-08-15 11:43:50-04                | {}
- v-token-db-reado-A1a-qx3yppzw8s19rx92-1502811352 | Cannot login                                              +| {}
-                                                  | Password valid until 2017-08-15 11:35:52-04                |
+ v-token-db-reado-A1a-qx3yppzw8s19rx92-1502811352 | Password valid until 2017-08-15 11:35:52-04                | {}
  vault                                            | Create role                                                | {}
 ```
