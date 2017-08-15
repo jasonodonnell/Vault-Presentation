@@ -39,3 +39,4 @@ clean:
 	- @$(DOCKER_BIN) stop $(PGSQL_CONTAINER_NAME)
 	- @$(DOCKER_BIN) rm $(VAULT_CONTAINER_NAME)
 	- @$(DOCKER_BIN) rm $(PGSQL_CONTAINER_NAME)
+	- @$(DOCKER_BIN) volume prune --force

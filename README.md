@@ -153,9 +153,9 @@ Success! Data written to: sys/policy/db-dba
 ### Create Token
 
 ```bash
-$ vault token-create -policy=db-readonly -period=5m
-$ vault token-create -policy=db-readwrite -period=5m
-$ vault token-create -policy=db-dba -period=5m
+$ vault token-create -policy=db-readonly -period=1h
+$ vault token-create -policy=db-readwrite -period=1h
+$ vault token-create -policy=db-dba -period=1h
 ```
 
 #### Output
@@ -166,7 +166,7 @@ Key             Value
 ---             -----
 token           200b2645-486c-e07b-3c10-f06e1e51174a
 token_accessor  8694ec93-9cec-98a0-87d8-c3310cd6c2dd
-token_duration  5m0s
+token_duration  1h0m0s
 token_renewable true
 token_policies  [db-readonly default]
 
@@ -175,7 +175,7 @@ Key             Value
 ---             -----
 token           14ef5dbd-79a3-6634-4fe4-90395132c0d3
 token_accessor  9b1f4397-fcb9-a3fd-46f2-2e8a750dcd3e
-token_duration  5m0s
+token_duration  1h0m0s
 token_renewable true
 token_policies  [db-readwrite default]
 
@@ -184,7 +184,7 @@ Key             Value
 ---             -----
 token           ba04bc5e-baf4-c54e-61fc-41926bf678a1
 token_accessor  71f51e9c-42a7-454d-28be-4c64182d66d9
-token_duration  5m0s
+token_duration  1h0m0s
 token_renewable true
 token_policies  [db-dba default]
 ```
