@@ -1,104 +1,28 @@
 # Vault Presentation
 
-* Secure Secret Storage
-  * KV Secrets
-  * Disk, Consul, Custom Backends
-* Dynamic Secrets
-  * S3 Buckets
-  * SQL Users
-  * Automatic Revocation
-* Data Encryption as a Service
-  * Encrypt data without storing
-  * Applications can encrypt and store in DB
-* Leasing/Renewal
-  * Automatically revokes after lease is done
-  * Renew API
-* Revocation
-  * Revoke single or trees of secrets
-* Policies
-  * Capabilities
-    * create (POST/PUT)
-    * read (GET)
-    * update (POST/PUT)
-    * delete (DELETE)
-    * list (LIST)
-    * sudo
-    * deny
-* Authentication
-  * Tokens
-* Dynamic Secrets Demo
-  * Deploy app to AWS using dynamic IAM
-  * Connect app to pgsql using dynamic roles
-
-### Secret Storage
-
-* Sensitive Environment Variables
-* Credentials
-* API Keys
-
-### Employee Credentials
-
-* Create policies for employees
-* Audit employee access
-* Revoke employees
-
-### Dynamic Secrets
-
-* Scripts can request one time credentials
-
-### Data Encryption
-
-* Encryption as a Service
-* No need to worry about properly encrypting data
-
-## Dev Server
-
-```bash
-$ export VAULT_ADDR='http://127.0.0.1:8200'
-$ vault server -dev
-$ vault status
-```
+[Slides](http://imgur.com/a/oaG1F)
 
 ## Hello, World
 
 ```bash
-$ vault write secret/hello value=world
+$ make build
+$ export VAULT_ADDR='http://127.0.0.1:8200'
+$ ROOT_TOKEN=$(docker logs vault-server 2>&1 | grep "Root Token" | awk '{print $3}')
+$ vault auth ${ROOT_TOKEN?}
+$ vault status
 ```
 
 ```bash
+$ vault write secret/hello value=world
 $ echo -n "brewcore" | vault write secret/password value=-
 $ cat data.json
-{
-    "value": "shhhh"
-}
 $ vault write secret/password @data.json
+$ vault read -field=value secret/password
 $ cat data.txt
-lolshh
 $ vault write secret/password value=@data.txt
 $ vault read -field=value secret/password
 $ vault read -format=json secret/password
 $ vault delete secret/password
-```
-
-## Secrets Backend
-
-* Backends are mounted to Vault
-* Generic mounted to `secret/` by default
-* Can mount as many backends as you want
-* Forwards to Virtual Filesystem
-
-```bash
-$ vault mount generic
-$ vault mounts
-```
-
-```bash
-$ vault write secret/password value=test
-$ vault read generic/password
-```
-
-```bash
-$ vault unmount generic
 ```
 
 ## Dynamic Secrets
