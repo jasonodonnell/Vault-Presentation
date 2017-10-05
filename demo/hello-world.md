@@ -1,3 +1,4 @@
+```bash
 make build
 export VAULT_ADDR='http://127.0.0.1:8200'
 ROOT_TOKEN=$(docker logs vault-server 2>&1 | grep "Root Token" | awk '{print $3}')
@@ -21,3 +22,4 @@ vault read -field=value secret/password
 
 vault read -format=json secret/password
 vault delete secret/password
+```

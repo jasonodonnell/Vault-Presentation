@@ -1,3 +1,4 @@
+```bash
 make build
 export VAULT_ADDR='http://127.0.0.1:8200'
 ROOT_TOKEN=$(docker logs vault-server 2>&1 | grep "Root Token" | awk '{print $3}')
@@ -45,3 +46,6 @@ vault auth
 vault read database/creds/db-readonly
 vault read database/creds/db-readwrite
 vault read database/creds/db-dba
+
+vault token-revoke <TOKEN>
+```
