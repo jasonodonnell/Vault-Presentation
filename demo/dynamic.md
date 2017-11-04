@@ -42,6 +42,22 @@ vault token-create -policy=db-readonly -period=1h
 vault token-create -policy=db-readwrite -period=1h
 vault token-create -policy=db-dba -period=1h
 
+
+curl -Ssl \
+    -H "X-Vault-Token: " \
+    -X GET \
+    http://127.0.0.1:8200/v1/database/creds/db-readonly
+
+curl -Ssl \
+    -H "X-Vault-Token: " \
+    -X GET \
+    http://127.0.0.1:8200/v1/database/creds/db-readwrite
+
+curl -Ssl \
+    -H "X-Vault-Token: " \
+    -X GET \
+    http://127.0.0.1:8200/v1/database/creds/db-dba
+
 vault auth
 vault read database/creds/db-readonly
 vault read database/creds/db-readwrite
