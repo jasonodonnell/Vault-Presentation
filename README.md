@@ -8,21 +8,21 @@
 $ make build
 $ export VAULT_ADDR='http://127.0.0.1:8200'
 $ ROOT_TOKEN=$(docker logs vault-server 2>&1 | grep "Root Token" | awk '{print $3}')
-$ vault auth ${ROOT_TOKEN?}
+$ vault login ${ROOT_TOKEN?}
 $ vault status
 ```
 
 ```bash
-$ vault write secret/hello value=world
-$ echo -n "brewcore" | vault write secret/password value=-
+$ vault kv put  secret/hello value=world
+$ echo -n "brewcore" | vault kv put secret/password value=-
 $ cat data.json
-$ vault write secret/password @data.json
-$ vault read -field=value secret/password
+$ vault kv put secret/password @data.json
+$ vault kv get -field=value secret/password
 $ cat data.txt
-$ vault write secret/password value=@data.txt
-$ vault read -field=value secret/password
-$ vault read -format=json secret/password
-$ vault delete secret/password
+$ vault kv put secret/password value=@data.txt
+$ vault kv get -field=value secret/password
+$ vault kv get -format=json secret/password
+$ vault kv delete secret/password
 ```
 
 ## Dynamic Secrets
@@ -51,14 +51,14 @@ token_policies: [root]
 ### Mount Database
 
 ```bash
-$ vault mount database
+$ vault secrets enable databasee
 
-$ vault write database/config/postgresql \
+$ vault kv put database/config/postgresql \
     plugin_name=postgresql-database-plugin \
     allowed_roles="db-readonly, db-readwrite, db-dba" \
     connection_url="postgresql://vault:vault@172.17.0.2:5432/postgres?sslmode=disable"
 
-$ vault write database/roles/db-readonly \
+$ vault kv put database/roles/db-readonly \
     db_name=postgresql \
     creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
         GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
@@ -67,7 +67,7 @@ $ vault write database/roles/db-readonly \
     default_ttl="1h" \
     max_ttl="24h"
 
-$ vault write database/roles/db-readwrite \
+$ vault kv put  database/roles/db-readwrite \
     db_name=postgresql \
     creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
         GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
@@ -76,7 +76,7 @@ $ vault write database/roles/db-readwrite \
     default_ttl="1h" \
     max_ttl="24h"
 
- $ vault write database/roles/db-dba \
+ $ vault kv put database/roles/db-dba \
     db_name=postgresql \
     creation_statements="CREATE ROLE \"{{name}}\" WITH SUPERUSER LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';"
     revocation_statements="ALTER ROLE \"{{name}}\" NOLOGIN;"\
@@ -88,18 +88,20 @@ $ vault write database/roles/db-readwrite \
 #### Output
 
 ```bash
-[~/Git/Vault-Presentation] vault mount database
-Successfully mounted 'database' at 'database'!
+[~/Git/Vault-Presentation] vault secrets enable database 
+Success! Enabled the database secrets engine at: database/
 
-[~/Git/Vault-Presentation] vault write database/config/postgresql \
+[~/Git/Vault-Presentation] vault kv put database/config/postgresql \
 >     plugin_name=postgresql-database-plugin \
 >     allowed_roles="db-readonly, db-readwrite, db-dba" \
 >     connection_url="postgresql://vault:vault@172.17.0.2:5432/postgres?sslmode=disable"
+WARNING! The following warnings were returned from Vault:
 
-The following warnings were returned from the Vault server:
-* Read access to this endpoint should be controlled via ACLs as it will return the connection details as is, including passwords, if any.
+  * Password found in connection_url, use a templated url to enable root
+  rotation and prevent read access to password information.
 
-[~/Git/Vault-Presentation] vault write database/roles/db-readonly \
+
+[~/Git/Vault-Presentation] vault kv put database/roles/db-readonly \
 >     db_name=postgresql \
 >     creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
 >         GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
@@ -109,7 +111,7 @@ The following warnings were returned from the Vault server:
 >     max_ttl="24h"
 Success! Data written to: database/roles/db-readonly
 
-[~/Git/Vault-Presentation] vault write database/roles/db-readwrite \
+[~/Git/Vault-Presentation] vault kv put database/roles/db-readwrite \
 >     db_name=postgresql \
 >     creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; \
 >         GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
@@ -119,7 +121,7 @@ Success! Data written to: database/roles/db-readonly
 >     max_ttl="24h"
 Success! Data written to: database/roles/db-readwrite
 
-[~/Git/Vault-Presentation] vault write database/roles/db-dba \
+[~/Git/Vault-Presentation] vault kv put database/roles/db-dba \
 >     db_name=postgresql \
 >     creation_statements="CREATE ROLE \"{{name}}\" WITH SUPERUSER LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}';"
 >     revocation_statements="ALTER ROLE \"{{name}}\" NOLOGIN;"\
@@ -132,36 +134,36 @@ Success! Data written to: database/roles/db-dba
 ### Create Policy
 
 ```bash
-$ vault write sys/policy/db-readonly rules=@./policy/db-readonly.hcl
-$ vault write sys/policy/db-readwrite rules=@./policy/db-readwrite.hcl
-$ vault write sys/policy/db-dba rules=@./policy/db-dba.hcl
+$ vault kv put sys/policy/db-readonly policy=@./policy/db-readonly.hcl
+$ vault kv put sys/policy/db-readwrite policy=@./policy/db-readwrite.hcl
+$ vault kv put sys/policy/db-dba policy=@./policy/db-dba.hcl
 ```
 
 #### Output
 
 ```bash
-[~/Git/Vault-Presentation/policy] vault write sys/policy/db-readonly rules=@./policy/db-readonly.hcl
+[~/Git/Vault-Presentation/policy] vault kv put sys/policy/db-readonly rules=@./policy/db-readonly.hcl
 Success! Data written to: sys/policy/db-readonly
 
-[~/Git/Vault-Presentation/policy] vault write sys/policy/db-readwrite rules=@./policy/db-readwrite.hcl
+[~/Git/Vault-Presentation/policy] vault kv put sys/policy/db-readwrite rules=@./policy/db-readwrite.hcl
 Success! Data written to: sys/policy/db-readwrite
 
-[~/Git/Vault-Presentation/policy] vault write sys/policy/db-dba rules=@./policy/db-dba.hcl
+[~/Git/Vault-Presentation/policy] vault kv put sys/policy/db-dba rules=@./policy/db-dba.hcl
 Success! Data written to: sys/policy/db-dba
 ```
 
 ### Create Token
 
 ```bash
-$ vault token-create -policy=db-readonly -period=1h
-$ vault token-create -policy=db-readwrite -period=1h
-$ vault token-create -policy=db-dba -period=1h
+$ vault token create -policy=db-readonly -period=1h
+$ vault token create -policy=db-readwrite -period=1h
+$ vault token create -policy=db-dba -period=1h
 ```
 
 #### Output
 
 ```bash
-[~/Git/Vault-Presentation/policy] vault token-create -policy=db-readonly -period=5m
+[~/Git/Vault-Presentation/policy] vault token create -policy=db-readonly -period=5m
 Key             Value
 ---             -----
 token           200b2645-486c-e07b-3c10-f06e1e51174a
@@ -170,7 +172,7 @@ token_duration  1h0m0s
 token_renewable true
 token_policies  [db-readonly default]
 
-[~/Git/Vault-Presentation/policy] vault token-create -policy=db-readwrite -period=5m
+[~/Git/Vault-Presentation/policy] vault token create -policy=db-readwrite -period=5m
 Key             Value
 ---             -----
 token           14ef5dbd-79a3-6634-4fe4-90395132c0d3
@@ -179,7 +181,7 @@ token_duration  1h0m0s
 token_renewable true
 token_policies  [db-readwrite default]
 
-[~/Git/Vault-Presentation/policy] vault token-create -policy=db-dba -period=5m
+[~/Git/Vault-Presentation/policy] vault token create -policy=db-dba -period=5m
 Key             Value
 ---             -----
 token           ba04bc5e-baf4-c54e-61fc-41926bf678a1
@@ -192,28 +194,33 @@ token_policies  [db-dba default]
 ### Use Token
 
 ```bash
-$ vault auth
-$ vault read database/creds/readonly
+$ vault login
+$ vault kv get database/creds/db-readonly
 ```
 
 #### Output
 
 ```bash
-[~/Git/Vault-Presentation] vault auth
-Token (will be hidden):
-Successfully authenticated! You are now logged in.
-token: 60643e64-a557-8173-8d48-c198b9b3a1c8
-token_duration: 257
-token_policies: [db-readonly default]
+[~/Git/Vault-Presentation] vault login
+Token (will be hidden): 
+Success! You are now authenticated. The token information displayed below
+is already stored in the token helper. You do NOT need to run "vault login"
+again. Future Vault requests will automatically use this token.
 
-[~/Git/Vault-Presentation] vault read database/creds/db-readonly
-Key             Value
----             -----
-lease_id        database/creds/db-readonly/143e70b4-e030-982d-b278-c4a446ea6d9c
-lease_duration  768h0m0s
-lease_renewable true
-password        A1a-z2u1v6wtp53u8sys
-username        v-token-db-reado-A1a-qx3yppzw8s19rx92-1502811352
+Key                Value
+---                -----
+token              247e794b-69bc-63a3-de4c-deeacfc47e3c
+token_accessor     c597fca1-4d01-6de9-d1a6-68a24de34293
+token_duration     ∞
+token_renewable    false
+token_policies     [root]
+
+[~/Git/Vault-Presentation] vault kv get database/creds/db-readonly
+====== Data ======
+Key         Value
+---         -----
+password    A1a-4zs7w06tz79r2r8r
+username    v-token-db-reado-v7s5471r2vxu6465stt9-1527075695
 ```
 
 ### PostgreSQL Roles
@@ -221,12 +228,12 @@ username        v-token-db-reado-A1a-qx3yppzw8s19rx92-1502811352
 ```bash
 postgres=# \du
                                                        List of roles
-                    Role name                     |                         Attributes                         | Member of
+                    Role name                     |                         Attributes                         | Member of 
 --------------------------------------------------+------------------------------------------------------------+-----------
  postgres                                         | Superuser, Create role, Create DB, Replication, Bypass RLS | {}
- v-root-dba-A1a-q6q42v881yx3qvvt-1502808239       | Superuser                                                 +| {}
-                                                  | Password valid until 2017-08-15 10:43:59-04                |
- v-root-readonly-A1a-177xp2t65x9v328r-1502808230  | Password valid until 2017-08-15 11:43:50-04                | {}
- v-token-db-reado-A1a-qx3yppzw8s19rx92-1502811352 | Password valid until 2017-08-15 11:35:52-04                | {}
- vault                                            | Create role                                                | {}
+ v-root-db-reado-9q5qzr86z9wutr7w3ppp-1527075188  | Password valid until 2018-06-24 07:33:13-04                | {}
+ v-root-db-reado-w100w44w8xq3p02rz85s-1527075118  | Password valid until 2018-06-24 07:32:03-04                | {}
+ v-root-db-reado-x64tpwzxr1qs48z13964-1527074949  | Password valid until 2018-06-24 07:29:14-04                | {}
+ v-token-db-reado-v7s5471r2vxu6465stt9-1527075695 | Password valid until 2018-06-24 07:41:40-04                | {}
+ vault                                            | Superuser                                                  | {}
 ```
